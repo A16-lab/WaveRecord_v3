@@ -796,7 +796,7 @@ int main(int argc, char* argv[])
 	int series = 0;
 	while (1)
 	{
-
+		// ---- Reconfigure the AD2 ------------------------------------
 		FDwfDigitalOutConfigure(hdwf, 1); // Starts or stops the instrument.
 		
 		// Description: Sets the repeat count.
@@ -827,7 +827,7 @@ int main(int argc, char* argv[])
 			//printf("STEP 0: AnalogInStatus - Wait for ARM  sts = %d\n", sts);
 		} while (sts != stsArm);
 		//printf("AnalogInStatus is Armed sts = %d\n", sts);
-
+		// ---- Reconfigure the AD2 ------------------------------------
 
 		series = series + 1;
 		printf("Starting series %u...\n", series);
@@ -845,10 +845,9 @@ int main(int argc, char* argv[])
 		//printf("DigitalInStatus - 1 sts = %d\n", sts);
 		// --- Waite for DigitalInTrigger --------------------------------------------------
 
-		// ------ Output files  name configure ---------------------------------------------
+		// --- Open the stream 0 + file name == Data & Time ISO -----------------------
 #ifdef FILE_OUT
 
-	// --- Output file name == Data & Time ISO -----------------------
 		time_t mytime = time(NULL);
 		struct tm* now = localtime(&mytime);
 
@@ -1043,7 +1042,7 @@ int main(int argc, char* argv[])
 			// --- пишем в бинарном виде параметры измерений -----------
 		}
 #endif // FILE_OUT
-		// ------ Output files  name configure ---------------------------------------------
+		// --- Open the stream 0 + file name == Data & Time ISO -----------------------
 
 		start = clock();
 		ping = 0;
@@ -1053,7 +1052,7 @@ int main(int argc, char* argv[])
 			FDwfAnalogInStatus(hdwf, false_mex, &sts);
 			//printf("AnalogInStatus sts = %d, ping = %d\n", sts, ping);
 
-	// --- Wait AnalogIn done ----------------------------------------------------------
+			// --- Wait AnalogIn done ----------------------------------------------------------
 #ifdef ANALOG_IN
 		//stsRdy = 0;		stsArm = 1;			stsDone = 2;		stsTrig = 3;
 		//stsCfg = 4;		stsPrefill = 5;		stsNotDone = 6;		stsTrigDly = 7;
@@ -1070,9 +1069,9 @@ int main(int argc, char* argv[])
 			} while (sts != stsDone);
 			//printf("STEP 1: AnalogInStatus -DONE- sts = %d, ping = %d\n", sts, ping);
 #endif // ANALOG_IN
-	// --- Wait AnalogIn done ----------------------------------------------------------
+			// --- Wait AnalogIn done ----------------------------------------------------------
 
-	// ---- Get the AnalogIn data ------------------------------------------------------
+			// ---- Get the AnalogIn data ------------------------------------------------------
 #ifdef ANALOG_IN
 		// get the samples for each channel
 			FDwfAnalogInStatusData(hdwf, 0, xr0, nSamplesIn);
@@ -1100,9 +1099,9 @@ int main(int argc, char* argv[])
 			} while (sts != stsArm);
 			//printf("STEP 2: AnalogInStatus -RE ARM- sts = %d, ping = %d\n", sts, ping);
 #endif // ANALOG_IN
-	// --- AnalogIn Arm ----------------------------------------------------------------
+			// --- AnalogIn Arm ----------------------------------------------------------------
 
-	// --- Write to file the receive data ----------------------------------------------
+			// --- Write to file the receive data ----------------------------------------------
 #ifdef FILE_OUT
 		// --- номер измерения -------------
 			ret_code = fwrite(&ping, sizeof(unsigned int), 1, stream0);
@@ -1143,6 +1142,12 @@ int main(int argc, char* argv[])
 
 			ping++;
 		}
+
+		// --- Close the stream 0 -----------------------
+#ifdef FILE_OUT
+		fclose(stream0);
+#endif // FILE_OUT
+		// --- Close the stream 0 -----------------------
 
 		printf("Done series %u...\n", series);
 	}
